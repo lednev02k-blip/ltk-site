@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    ЛТК — общий JS (Лаконичные, технологичные конструкции)
    Навигация, boot-заставка, reveal-анимации, формы заявок,
    фильтр портфолио, шапка при скролле, копирование заявки.
@@ -126,7 +126,11 @@
     });
   }
 
-  /* ---------- Отправка форм (демо-режим) ---------- */
+  /* ---------- Отправка форм (реальная отправка на почту) ---------- */
+
+  var FORM_ENDPOINT = "https://formsubmit.co/ajax/lednevkiryusha@yandex.ru";
+  var FORM_EMAIL = "lednevkiryusha@yandex.ru";
+  var formBusy = false;
 
   function statusFor(form, ok, message) {
     var box = form.querySelector(".form-status");
@@ -135,11 +139,85 @@
     box.classList.toggle("ok", ok);
     box.classList.toggle("err", !ok);
     box.classList.add("is-visible");
-    if (ok) {
-      setTimeout(function () {
-        box.classList.remove("is-visible");
-      }, 9000);
+  }
+
+  function buildFormData(form) {
+    var dir = (form.querySelector("select[name='direction']") || {}).value || "—";
+    var who = (form.querySelector("select[name='who']") || {}).value || "—";
+    var city = (form.querySelector("[name='city']") || {}).value || "";
+    var need = (form.querySelector("[name='need']") || {}).value || "";
+    var contact = (form.querySelector("[name='contact']") || {}).value || "";
+    var info = (form.querySelector("[name='info']") || {}).value || "";
+
+    var dirLabel = "—";
+    directionOptions.forEach(function (d) { if (d.id === dir) dirLabel = d.label; });
+
+    var payload = {
+      _subject: "Заявка с сайта ЛТК",
+      _template: "table",
+      _captcha: "false",
+      _autoresponse: "Спасибо за заявку! Я получил ваше сообщение и отвечу в ближайшее время. — Кирилл Леднев, ЛТК",
+      Направление: dirLabel,
+      "Кто обращается": who,
+      Задача: need,
+      Контакт: contact
+    };
+    if (city) payload["Город"] = city;
+    if (info) payload["Дополнительно"] = info;
+
+    var fileInput = form.querySelector("input[type='file']");
+    if (fileInput && fileInput.files && fileInput.files.length) {
+      var names = Array.prototype.map.call(fileInput.files, function (f) { return f.name; });
+      payload["Прикреплённые файлы"] = names.join(", ");
     }
+
+    return payload;
+  }
+
+  function sendForm(form) {
+    if (formBusy) return;
+    var payload = buildFormData(form);
+    formBusy = true;
+
+    var submitBtn = form.querySelector("button[type='submit']");
+    if (submitBtn) submitBtn.disabled = true;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", FORM_ENDPOINT, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("Accept", "application/json");
+
+    xhr.onload = function () {
+      formBusy = false;
+      if (submitBtn) submitBtn.disabled = false;
+      var ok = xhr.status === 200;
+      if (ok) {
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          if (resp && resp.success === "false") ok = false;
+        } catch (e) { /* ответ не JSON — считаем ок */ }
+      }
+      if (ok) {
+        statusFor(form, true, "Заявка отправлена!");
+        var btn = form.querySelector("button[type='submit']");
+        if (btn) {
+          var original = btn.innerHTML;
+          btn.innerHTML = '<span class="btn-check">✓</span> Заявка отправлена';
+          setTimeout(function () { btn.innerHTML = original; }, 5000);
+        }
+        form.reset();
+      } else {
+        statusFor(form, false, "Сервис форм временно недоступен. Пожалуйста, напишите напрямую на " + FORM_EMAIL + " — приложите текст заявки из формы. Приносим неудобства.");
+      }
+    };
+
+    xhr.onerror = function () {
+      formBusy = false;
+      if (submitBtn) submitBtn.disabled = false;
+      statusFor(form, false, "Не удалось отправить. Проверьте интернет или напишите на " + FORM_EMAIL);
+    };
+
+    xhr.send(JSON.stringify(payload));
   }
 
   function bindForms() {
@@ -150,35 +228,7 @@
           form.reportValidity();
           return;
         }
-        var dir = (form.querySelector("select[name='direction']") || {}).value || "—";
-        var who = (form.querySelector("select[name='who']") || {}).value || "—";
-        var city = (form.querySelector("[name='city']") || {}).value || "";
-        var need = (form.querySelector("[name='need']") || {}).value || "";
-        var contact = (form.querySelector("[name='contact']") || {}).value || "";
-        var info = (form.querySelector("[name='info']") || {}).value || "";
-
-        var dirLabel = "—";
-        directionOptions.forEach(function (d) { if (d.id === dir) dirLabel = d.label; });
-
-        var text = ["Заявка ЛТК", "Направление: " + dirLabel, "Кто обращается: " + who];
-        if (city) text.push("Город: " + city);
-        text.push("Задача: " + need, "Контакт: " + contact);
-        if (info) text.push("Дополнительно: " + info);
-
-        var fileInput = form.querySelector("input[type='file']");
-        if (fileInput && fileInput.files && fileInput.files.length) {
-          var names = Array.prototype.map.call(fileInput.files, function (f) { return f.name; });
-          text.push("Прикреплённые файлы: " + names.join(", "));
-        }
-        text.push("С сайта lednev-engineering.ru");
-
-        statusFor(form, true, "Заявка сформирована и скопирована в буфер. " +
-          "Отправьте её в удобный мессенджер — на этом демо-сайте почта не подключена. " +
-          "После выбора направления поле «Задача» уже содержит типовое описание.");
-
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text.join("\n")).catch(function () {});
-        }
+        sendForm(form);
       });
 
       var needField = form.querySelector("[name='need']");
@@ -358,7 +408,6 @@
     seedForms();
     bindForms();
     bindFileInputs();
-    copyDemo();
     bindPortfolioFilter();
   });
 })();
