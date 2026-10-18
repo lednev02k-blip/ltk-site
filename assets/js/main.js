@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    ЛТК — общий JS (Лаконичные, технологичные конструкции)
    Навигация, boot-заставка, reveal-анимации, формы заявок,
    фильтр портфолио, шапка при скролле, копирование заявки.
@@ -126,9 +126,9 @@
     });
   }
 
-  /* ---------- Отправка форм (реальная отправка на почту) ---------- */
+  /* ---------- Отправка форм (FormSubmit через скрытый iframe) ---------- */
 
-  var FORM_ENDPOINT = "https://formsubmit.co/ajax/lednevkiryusha@yandex.ru";
+  var FORM_ENDPOINT = "https://formsubmit.co/lednevkiryusha@yandex.ru";
   var FORM_EMAIL = "lednevkiryusha@yandex.ru";
   var formBusy = false;
 
@@ -141,83 +141,64 @@
     box.classList.add("is-visible");
   }
 
-  function buildFormData(form) {
-    var dir = (form.querySelector("select[name='direction']") || {}).value || "—";
-    var who = (form.querySelector("select[name='who']") || {}).value || "—";
-    var city = (form.querySelector("[name='city']") || {}).value || "";
-    var need = (form.querySelector("[name='need']") || {}).value || "";
-    var contact = (form.querySelector("[name='contact']") || {}).value || "";
-    var info = (form.querySelector("[name='info']") || {}).value || "";
-
-    var dirLabel = "—";
-    directionOptions.forEach(function (d) { if (d.id === dir) dirLabel = d.label; });
-
-    var payload = {
-      _subject: "Заявка с сайта ЛТК",
-      _template: "table",
-      _captcha: "false",
-      _autoresponse: "Спасибо за заявку! Я получил ваше сообщение и отвечу в ближайшее время. — Кирилл Леднев, ЛТК",
-      Направление: dirLabel,
-      "Кто обращается": who,
-      Задача: need,
-      Контакт: contact
-    };
-    if (city) payload["Город"] = city;
-    if (info) payload["Дополнительно"] = info;
-
-    var fileInput = form.querySelector("input[type='file']");
-    if (fileInput && fileInput.files && fileInput.files.length) {
-      var names = Array.prototype.map.call(fileInput.files, function (f) { return f.name; });
-      payload["Прикреплённые файлы"] = names.join(", ");
-    }
-
-    return payload;
+  function ensureHiddenIframe() {
+    var iframe = document.getElementById("ltk-submit-frame");
+    if (iframe) return iframe;
+    iframe = document.createElement("iframe");
+    iframe.id = "ltk-submit-frame";
+    iframe.name = "ltk-submit-frame";
+    iframe.style.cssText = "position:absolute;width:1px;height:1px;left:-9999px;top:-9999px;border:none;visibility:hidden;";
+    document.body.appendChild(iframe);
+    return iframe;
   }
 
   function sendForm(form) {
     if (formBusy) return;
-    var payload = buildFormData(form);
     formBusy = true;
 
-    var submitBtn = form.querySelector("button[type='submit']");
-    if (submitBtn) submitBtn.disabled = true;
+    var btn = form.querySelector("button[type='submit']");
+    var origBtn = btn ? btn.innerHTML : "";
+    if (btn) { btn.disabled = true; btn.innerHTML = "Отправляем…"; }
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", FORM_ENDPOINT, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.setRequestHeader("Accept", "application/json");
+    // Классический FormSubmit: POST на сервер, ответ открывается в скрытом iframe —
+    // работает без CORS на любом статическом хостинге.
+    var iframe = ensureHiddenIframe();
+    form.setAttribute("action", FORM_ENDPOINT);
+    form.setAttribute("method", "POST");
+    form.setAttribute("target", "ltk-submit-frame");
+    form.setAttribute("enctype", "multipart/form-data");
 
-    xhr.onload = function () {
+    var done = function (ok, msg) {
       formBusy = false;
-      if (submitBtn) submitBtn.disabled = false;
-      var ok = xhr.status === 200;
-      if (ok) {
-        try {
-          var resp = JSON.parse(xhr.responseText);
-          if (resp && resp.success === "false") ok = false;
-        } catch (e) { /* ответ не JSON — считаем ок */ }
-      }
+      if (btn) { btn.disabled = false; btn.innerHTML = origBtn; }
       if (ok) {
         statusFor(form, true, "Заявка отправлена!");
-        var btn = form.querySelector("button[type='submit']");
-        if (btn) {
-          var original = btn.innerHTML;
-          btn.innerHTML = '<span class="btn-check">✓</span> Заявка отправлена';
-          setTimeout(function () { btn.innerHTML = original; }, 5000);
-        }
+        if (btn) { btn.innerHTML = '<span class="btn-check">✓</span> Заявка отправлена'; }
+        setTimeout(function () { if (btn) btn.innerHTML = origBtn; }, 6000);
         form.reset();
       } else {
-        statusFor(form, false, "Сервис форм временно недоступен. Пожалуйста, напишите напрямую на " + FORM_EMAIL + " — приложите текст заявки из формы. Приносим неудобства.");
+        statusFor(form, false, msg);
       }
     };
 
-    xhr.onerror = function () {
-      formBusy = false;
-      if (submitBtn) submitBtn.disabled = false;
-      statusFor(form, false, "Не удалось отправить. Проверьте интернет или напишите на " + FORM_EMAIL);
+    var timer = setTimeout(function () {
+      if (formBusy) {
+        // iframe не ответил за 8 секунд — показываем ошибку с прямой почтой
+        done(false, "Не удалось отправить автоматически. Пожалуйста, напишите на " + FORM_EMAIL + " — я отвечу лично.");
+      }
+    }, 8000);
+
+    iframe.onload = function () {
+      clearTimeout(timer);
+      if (formBusy) done(true, "Заявка отправлена!");
     };
 
-    xhr.send(JSON.stringify(payload));
+    try {
+      form.submit();
+    } catch (e) {
+      clearTimeout(timer);
+      done(false, "Ошибка отправки. Напишите на " + FORM_EMAIL);
+    }
   }
 
   function bindForms() {

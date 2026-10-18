@@ -137,8 +137,8 @@ window.LEDNEV.PROJECTS = [
 ];
 
 window.LEDNEV.CONTACTS = {
-  email: "info@ltk-engineering.ru",
-  placeholderEmail: "info@ltk-engineering.ru",
+  email: "lednevkiryusha@yandex.ru",
+  placeholderEmail: "lednevkiryusha@yandex.ru",
   max: "https://max.ru/u/f9LHodD0cOJQqh6TV9rrnLRonDGri8WLr-Ia_SbMb60s1b_sn17M96OEl9I",
   maxLabel: "MAX · написать",
   instagram: "@lktecn0",
