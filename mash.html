@@ -1,0 +1,271 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Машиностроение: пресс-формы, 3D-модели, КД | ЛТК</title>
+  <meta name="description" content="Проектирование пресс-форм для литья пластмасс, создание и доработка 3D-моделей, анализ технологичности, разработка конструкторской документации. Инженер-конструктор Кирилл Леднев.">
+  <meta property="og:title" content="Машиностроение | ЛТК">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/img/injection-mold.jpg">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#101214">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2317191B'/%3E%3Ctext x='16' y='22' font-family='Arial' font-size='14' font-weight='bold' fill='%2388765B' text-anchor='middle'%3EL%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Unbounded:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <div class="scroll-progress" id="scroll-progress"></div>
+
+  <header class="site-header" id="site-header">
+    <div class="container">
+      <a class="brand" href="index.html">ЛТК <span class="brand__sep">|</span> <span class="brand__desc">Лаконичные Технологичные Конструкции</span></a>
+      <nav class="nav" aria-label="Основная навигация">
+        <a class="nav__link" href="index.html">Главная</a>
+        <a class="nav__link" href="spk.html">СПК</a>
+        <a class="nav__link" href="glass.html">Стекло</a>
+        <a class="nav__link is-active" href="mash.html">Машиностроение</a>
+        <a class="nav__link" href="print3d.html">3D-печать</a>
+        <a class="nav__link" href="portfolio.html">Портфолио</a>
+                <div class="nav-actions">
+          <a class="btn btn--max" href="https://max.ru/u/f9LHodD0cOJQqh6TV9rrnLRonDGri8WLr-Ia_SbMb60s1b_sn17M96OEl9I" target="_blank" rel="noopener" aria-label="Написать в мессенджер MAX">
+            <span class="max-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.2 2 11.4c0 2.9 1.45 5.5 3.7 7.2V22l3.2-1.8c.95.26 1.95.4 3.1.4 5.52 0 10-4.2 10-9.4S17.52 2 12 2z" fill="currentColor"/>
+              </svg>
+            </span>
+            <span>MAX</span>
+          </a>
+<a class="btn btn--solid nav__cta" href="contacts.html">Обсудить проект</a>
+        </div>
+      </nav>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Открыть меню" aria-expanded="false">
+        <span class="burger"><span></span><span></span><span></span></span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="mobile-menu" id="mobile-menu" aria-label="Мобильная навигация">
+    <a href="index.html"><span class="mm-num">00</span> Главная</a>
+    <a href="spk.html"><span class="mm-num">01</span> Светопрозрачные конструкции</a>
+    <a href="glass.html"><span class="mm-num">02</span> Цельностеклянные конструкции</a>
+    <a href="mash.html"><span class="mm-num">03</span> Машиностроение</a>
+    <a href="print3d.html"><span class="mm-num">04</span> 3D-печать</a>
+    <a href="portfolio.html"><span class="mm-num">05</span> Портфолио</a>
+    <a href="about.html"><span class="mm-num">06</span> Обо мне</a>
+    <a href="contacts.html"><span class="mm-num">07</span> Контакты</a>
+    <a class="mm-max" href="https://max.ru/u/f9LHodD0cOJQqh6TV9rrnLRonDGri8WLr-Ia_SbMb60s1b_sn17M96OEl9I" target="_blank" rel="noopener">
+      <span class="max-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.2 2 11.4c0 2.9 1.45 5.5 3.7 7.2V22l3.2-1.8c.95.26 1.95.4 3.1.4 5.52 0 10-4.2 10-9.4S17.52 2 12 2z" fill="currentColor"/>
+        </svg>
+      </span>
+      Написать в MAX
+    </a>
+
+    <div class="mm-foot">Инженерное проектирование · 3D-моделирование · КД</div>
+  </nav>
+
+  <main>
+
+    <!-- Хиро страницы -->
+    <section class="page-hero">
+      <div class="container">
+        <div class="page-hero__num"><b>НАПРАВЛЕНИЕ 03</b> / МАШИНОСТРОЕНИЕ</div>
+        <h1>Машиностроение: от 3D-модели к производству</h1>
+        <p class="lede">Проектирую пресс-формы для литья пластмасс, создаю и дорабатываю 3D-модели деталей и механизмов, анализирую технологичность и выпускаю конструкторскую документацию, по которой изделие можно изготовить.</p>
+        <div class="page-hero__meta">
+          <div class="pm"><div class="k">КТО ОБРАЩАЕТСЯ</div><div class="v">Промышленные предприятия, разработчики изделий, изготовители пресс-форм</div></div>
+          <div class="pm"><div class="k">РЕЗУЛЬТАТ</div><div class="v">Модель, состав изделия, комплект КД</div></div>
+          <div class="pm"><div class="k">ФОРМАТЫ</div><div class="v">DWG · PDF · STEP · STP</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Задача клиента -->
+    <section class="section section--dark">
+      <div class="container">
+        <div class="work-split">
+          <div>
+            <span class="eyebrow">Проблема клиента</span>
+            <p class="lede" style="margin-bottom:24px">Разработчику изделия нужен готовый инструмент или комплект документации, а предприятию — конструктор, который доведёт идею до производства: от эскиза и эскизного моделирования до рабочих чертежей.</p>
+            <p style="color:var(--text-dim); max-width:54ch">Ключевая задача — инженерное решение, которое можно изготовить, собрать и обслуживать. Поэтому в работе всегда участвуют анализ технологичности, посадки и допуски, оформление по стандартам.</p>
+          </div>
+          <div class="reveal">
+            <div class="scene__media">
+              <img src="assets/img/cad-model.jpg" alt="3D-модель детали с сечением и размерными линиями" loading="lazy">
+              <span class="scene__caption">3D-модель · сечение · размерные цепи</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Что входит -->
+    <section class="section section--soft" id="scope">
+      <div class="container">
+        <div class="section__head">
+          <span class="eyebrow">Состав работы</span>
+          <h2>Что входит в инженерные услуги</h2>
+        </div>
+        <div class="work-split">
+          <div class="work-item reveal">
+            <div class="work-item__head"><span class="work-item__idx">01</span><h3>Проектирование пресс-форм</h3></div>
+            <p>Конструкция формы для литья пластмасс: разъёмы, знаки, система охлаждения, выталкиватели, подбор стандартных элементов.</p>
+          </div>
+          <div class="work-item reveal">
+            <div class="work-item__head"><span class="work-item__idx">02</span><h3>Создание и доработка 3D-моделей</h3></div>
+            <p>Моделирование деталей и сборок по эскизам, фотографиям или техническому заданию, доработка существующих моделей.</p>
+          </div>
+          <div class="work-item reveal">
+            <div class="work-item__head"><span class="work-item__idx">03</span><h3>Анализ технологичности</h3></div>
+            <p>Проверка изделия на возможность изготовления: углы, толщины, уклоны, припуски, особенности литья и механообработки.</p>
+          </div>
+          <div class="work-item reveal">
+            <div class="work-item__head"><span class="work-item__idx">04</span><h3>Конструкторская документация</h3></div>
+            <p>Сборочные чертежи, деталировки, спецификации, оформление по стандартам, пояснительные записки.</p>
+          </div>
+          <div class="work-item reveal">
+            <div class="work-item__head"><span class="work-item__idx">05</span><h3>Оптимизация конструкции</h3></div>
+            <p>Упрощение форм, снижение массы, оптимизация под конкретный способ изготовления и условия эксплуатации.</p>
+          </div>
+          <div class="work-item reveal">
+            <div class="work-item__head"><span class="work-item__idx">06</span><h3>Инженерная проработка</h3></div>
+            <p>Посадки, допуски, кинематика механизмов, проверка сборки и обслуживания, согласование с производством.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Процесс -->
+    <section class="section section--dark" id="process">
+      <div class="container">
+        <div class="section__head">
+          <span class="eyebrow">Процесс взаимодействия</span>
+          <h2>Как устроена работа</h2>
+        </div>
+        <div class="steps">
+          <div class="step reveal"><span class="step__num">ШАГ 01</span><h3>Техническое задание</h3><p>Чертёж, эскиз, образец или описание задачи. Вы передаёте ТЗ — я уточняю требования и ограничения.</p></div>
+          <div class="step reveal reveal-delay-1"><span class="step__num">ШАГ 02</span><h3>Концепция</h3><p>Эскизное проектирование: варианты решения, габариты, принципиальная схема, оценка трудозатрат.</p></div>
+          <div class="step reveal reveal-delay-2"><span class="step__num">ШАГ 03</span><h3>Разработка</h3><p>3D-моделирование, проработка деталей и узлов, выпуск чертежей и спецификаций, само-проверка.</p></div>
+          <div class="step reveal reveal-delay-3"><span class="step__num">ШАГ 04</span><h3>Передача и корректировка</h3><p>Комплект документации, пояснения по модели и чертежам, правки по результатам изготовления.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA + форма -->
+    <section class="section section--soft" id="contact">
+      <div class="container">
+        <div class="section__head">
+          <span class="eyebrow">Заявка на работу</span>
+          <h2>Передать техническое задание</h2>
+          <p class="lede reveal">Опишите деталь или задачу, приложите чертёж, эскиз или фотографию. По результатам ТЗ я оценю состав работ.</p>
+        </div>
+        <div class="form-card reveal">
+          <form data-request>
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="m-direction">Направление</label>
+                <select name="direction" id="m-direction" required>
+                  <option value="spk">Светопрозрачные конструкции</option>
+                  <option value="glass">Цельностеклянные конструкции</option>
+                  <option value="mash" selected>Машиностроение</option>
+                  <option value="print3d">3D-печать</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="m-who">Кто обращается?</label>
+                <select name="who" id="m-who" required>
+                  <option value="Компания">Компания</option>
+                  <option value="Частный клиент">Частный клиент</option>
+                </select>
+              </div>
+              <div class="form-field form-field--full">
+                <label for="m-need">Что нужно сделать?</label>
+                <textarea name="need" id="m-need" placeholder="Передаю техническое задание на пресс-форму для корпуса из АБС-пластика, эскиз во вложении..." required></textarea>
+              </div>
+              <div class="form-field">
+                <label for="m-city">Город</label>
+                <input type="text" name="city" id="m-city" placeholder="Ваш город" autocomplete="address-level2">
+              </div>
+              <div class="form-field">
+                <label for="m-contact">Контакт для связи</label>
+                <input type="text" name="contact" id="m-contact" placeholder="Телефон или e-mail" required>
+              </div>
+              <div class="form-field form-field--full">
+                <label for="m-info">Дополнительная информация</label>
+                <textarea name="info" id="m-info" placeholder="Сроки, серийность, материалы, файлы (STEP/DWG/PDF)..."></textarea>
+              </div>
+              <div class="form-field--full file-field">
+                <label>Прикрепить файлы</label>
+                <input type="file" name="files" id="m-files" multiple
+                       accept=".pdf,.dwg,.dxf,.step,.stp,.stl,.3mf,.obj,.zip,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png">
+                <div class="file-drop">
+                  <span class="file-drop__title">Нажмите или перетащите файлы сюда</span>
+                  <span class="file-drop__sub">PDF, DWG, STEP, STL, ZIP — до 25 МБ суммарно</span>
+                </div>
+                <div class="file-list"></div>
+              </div>
+            </div>
+            <p class="form-hint">Демо-форма: текст заявки копируется в буфер для отправки в мессенджер. Файлы можно прислать после первого контакта.</p>
+            <div class="form-status" role="status"></div>
+            <div style="margin-top:26px"><button class="btn btn--solid" type="submit">Отправить заявку <span class="arr">→</span></button></div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="brand footer-brand">ЛТК <span class="brand__sep">|</span> <span class="brand__desc">Лаконичные Технологичные Конструкции</span></div>
+          <p class="footer-desc">Инженерное проектирование от идеи до производства. Персональный инженерный бренд Кирилла Леднева.</p>
+        </div>
+        <div>
+          <h4>Направления</h4>
+          <ul>
+            <li><a href="spk.html">Светопрозрачные конструкции</a></li>
+            <li><a href="glass.html">Цельностеклянные конструкции</a></li>
+            <li><a href="mash.html">Машиностроение</a></li>
+            <li><a href="print3d.html">3D-печать</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Сайт</h4>
+          <ul>
+            <li><a href="portfolio.html">Портфолио</a></li>
+            <li><a href="about.html">Обо мне</a></li>
+            <li><a href="contacts.html">Контакты</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Контакты</h4>
+          <ul>
+            <li><a href="mailto:info@ltk-engineering.ru">info@ltk-engineering.ru</a></li>
+            <li><a href="https://max.ru/u/f9LHodD0cOJQqh6TV9rrnLRonDGri8WLr-Ia_SbMb60s1b_sn17M96OEl9I" rel="noopener" target="_blank">MAX · написать</a></li>
+            <li><a href="https://vk.ru/lktecn0" rel="noopener" target="_blank">VK · lktecn0</a></li>
+            <li><a href="https://instagram.com/lktecn0" rel="noopener" target="_blank">Instagram · lktecn0</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 ЛТК <span class="ftr-desc">| Лаконичные Технологичные Конструкции</span></span>
+        <span>КОНСТРУКЦИЯ · МОДЕЛЬ · ПРОИЗВОДСТВО</span>
+        <span>Кирилл Леднев · инженер-конструктор</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/vendors/three/three.min.js"></script>
+  <script src="assets/vendors/gsap/gsap.min.js"></script>
+  <script src="assets/vendors/gsap/ScrollTrigger.min.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
