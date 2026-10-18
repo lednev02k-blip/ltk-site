@@ -126,12 +126,9 @@
     });
   }
 
-  /* ---------- Отправка форм (EmailJS — работает из РФ без VPN) ---------- */
+  /* ---------- Отправка форм (Forminit — работает из РФ, файлы вложением) ---------- */
 
-  // ─── Настройки EmailJS (заполните своими ключами) ───
-  var EMAILJS_SERVICE_ID = "service_qds2nsn"; // Service ID
-  var EMAILJS_TEMPLATE_ID = "template_arjnixp"; // Template ID
-  var EMAILJS_PUBLIC_KEY = "s3VBTFe7dOg6MsaLc"; // Public Key
+  var FORM_INIT_ID = "dufxzxnvbik"; // ID формы в Forminit
   var FORM_EMAIL = "lednevkiryusha@yandex.ru";
   var formBusy = false;
 
@@ -144,36 +141,52 @@
     box.classList.add("is-visible");
   }
 
-  function collectFields(form) {
-    var data = {};
-    Array.prototype.forEach.call(form.querySelectorAll("[name]"), function (el) {
-      var name = el.getAttribute("name");
-      if (!name || name.charAt(0) === "_") return;
-      data[name] = el.value || "";
-    });
-    var dir = data.direction;
-    if (dir) {
-      var labels = { spk: "СПК", glass: "Стекло", mash: "Машиностроение", print3d: "3D-печать" };
-      data.direction = labels[dir] || dir;
+  // Собирает поля формы в FormData с удобными для Forminit именами
+  function buildFormData(form) {
+    var fd = new FormData();
+    var dirLabels = { spk: "СПК", glass: "Стекло", mash: "Машиностроение", print3d: "3D-печать" };
+
+    function val(name) {
+      var el = form.querySelector("[name='" + name + "']");
+      return el ? (el.value || "").trim() : "";
     }
-    var files = form.querySelector("input[type='file']");
-    if (files && files.files && files.files.length) {
-      var names = Array.prototype.map.call(files.files, function (f) { return f.name; });
-      data.files = names.join(", ");
+
+    var dir = val("direction");
+    // Текстовые поля (fi-text-*) принимают любые символы, включая кириллицу
+    fd.append("fi-text-napravlenie", dirLabels[dir] || dir || "—");
+    fd.append("fi-text-kto", val("who") || "—");
+    fd.append("fi-sender-city", val("city") || "—");
+    fd.append("fi-text-zadacha", val("need"));
+    fd.append("fi-text-kontakt", val("contact"));
+    fd.append("fi-text-dopolnitelno", val("info"));
+
+    // Forminit требует минимум одно поле sender: email/phone/fullName.
+    // Определяем тип контакта: email → fi-sender-email, иначе → fi-sender-phone (E.164-совм.)
+    var contact = val("contact");
+    var isEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact);
+    if (isEmail) {
+      fd.append("fi-sender-email", contact);
     } else {
-      data.files = "нет";
+      var phone = contact.replace(/[^\d+]/g, "");
+      fd.append("fi-sender-phone", phone || "+70000000000");
     }
-    return data;
+    // Уникальный userId — подстраховка, если контакт пустой
+    fd.append("fi-sender-userId", "ltk_" + Date.now());
+
+    // файлы: передаём как вложения под именами fi-file-attachments[]
+    var fileInput = form.querySelector("input[type='file']");
+    if (fileInput && fileInput.files) {
+      Array.prototype.forEach.call(fileInput.files, function (file) {
+        fd.append("fi-file-attachments[]", file, file.name);
+      });
+    }
+    return fd;
   }
 
   function sendForm(form) {
     if (formBusy) return;
-    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
-      statusFor(form, false, "Форма готовится к запуску. Пока напишите на " + FORM_EMAIL + " — я отвечу лично.");
-      return;
-    }
-    if (!window.emailjs) {
-      statusFor(form, false, "Не удалось загрузить модуль отправки. Напишите на " + FORM_EMAIL);
+    if (!window.Forminit) {
+      statusFor(form, false, "Сервис отправки не загрузился. Пока напишите на " + FORM_EMAIL + " — я отвечу лично.");
       return;
     }
     formBusy = true;
@@ -182,24 +195,27 @@
     var origBtn = btn ? btn.innerHTML : "";
     if (btn) { btn.disabled = true; btn.innerHTML = "Отправляем…"; }
 
-    var payload = collectFields(form);
-    payload.to_email = FORM_EMAIL;
-    payload.message = "Заявка с сайта ЛТК";
+    var forminit = new window.Forminit();
+    var formData = buildFormData(form);
 
-    emailjs.init(EMAILJS_PUBLIC_KEY);
-    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, payload)
-      .then(function () {
+    forminit.submit(FORM_INIT_ID, formData)
+      .then(function (result) {
         formBusy = false;
         if (btn) { btn.disabled = false; btn.innerHTML = origBtn; }
-        statusFor(form, true, "Заявка отправлена!");
-        if (btn) { btn.innerHTML = '<span class="btn-check">✓</span> Заявка отправлена'; }
-        setTimeout(function () { if (btn) btn.innerHTML = origBtn; }, 6000);
-        form.reset();
+        if (result && !result.error) {
+          statusFor(form, true, "Заявка отправлена!");
+          if (btn) { btn.innerHTML = '<span class="btn-check">✓</span> Заявка отправлена'; }
+          setTimeout(function () { if (btn) btn.innerHTML = origBtn; }, 6000);
+          form.reset();
+        } else {
+          var errMsg = (result && result.error && result.error.message) ? result.error.message : "";
+          statusFor(form, false, "Ошибка отправки. " + errMsg + " Напишите на " + FORM_EMAIL + " — я отвечу лично.");
+        }
       })
       .catch(function (err) {
         formBusy = false;
         if (btn) { btn.disabled = false; btn.innerHTML = origBtn; }
-        var msg = (err && err.text) ? err.text : "";
+        var msg = (err && err.message) ? err.message : "";
         statusFor(form, false, "Не удалось отправить. " + msg + " Напишите на " + FORM_EMAIL + " — я отвечу лично.");
       });
   }
