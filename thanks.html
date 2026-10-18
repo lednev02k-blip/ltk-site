@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Заявка отправлена | ЛТК</title>
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2317191B'/%3E%3Ctext x='16' y='22' font-family='Arial' font-size='14' font-weight='bold' fill='%2388765B' text-anchor='middle'%3EL%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Unbounded:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .thanks-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      background:
+        radial-gradient(90% 120% at 80% 0%, rgba(136, 118, 91, 0.16) 0%, transparent 55%),
+        var(--graphite-deep);
+    }
+    .thanks-card {
+      max-width: 560px;
+      width: 100%;
+      text-align: center;
+      background: var(--graphite);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: clamp(36px, 6vw, 60px) clamp(24px, 5vw, 48px);
+      box-shadow: var(--shadow);
+    }
+    .thanks-check {
+      width: 84px;
+      height: 84px;
+      margin: 0 auto 26px;
+      border-radius: 50%;
+      background: rgba(111, 191, 90, 0.14);
+      border: 2px solid rgba(111, 191, 90, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pop 0.6s var(--ease);
+    }
+    .thanks-check svg { width: 40px; height: 40px; }
+    .thanks-card h1 {
+      font-size: clamp(26px, 5vw, 38px);
+      margin-bottom: 16px;
+    }
+    .thanks-card p {
+      color: var(--text-dim);
+      font-size: 15.5px;
+      line-height: 1.7;
+      max-width: 40ch;
+      margin: 0 auto 30px;
+    }
+    .thanks-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .thanks-mail {
+      display: inline-block;
+      margin-top: 18px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      color: var(--bronze-hi);
+    }
+  </style>
+</head>
+<body>
+  <div class="thanks-wrap">
+    <div class="thanks-card">
+      <div class="thanks-check" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M5 13l4 4L19 7" stroke="#6FBF5A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1>Заявка отправлена!</h1>
+      <p>Спасибо за обращение. Я получил вашу заявку и свяжусь с вами в ближайшее время.</p>
+      <div class="thanks-actions">
+        <a class="btn btn--solid" href="index.html">На главную</a>
+        <a class="btn" href="portfolio.html">Смотреть портфолио</a>
+      </div>
+      <a class="thanks-mail" href="mailto:lednevkiryusha@yandex.ru">lednevkiryusha@yandex.ru</a>
+    </div>
+  </div>
+</body>
+</html>

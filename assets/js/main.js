@@ -126,91 +126,18 @@
     });
   }
 
-  /* ---------- Отправка форм (FormSubmit через скрытый iframe) ---------- */
+  /* ---------- Отправка форм (FormSubmit, обычный POST + редирект) ---------- */
 
   var FORM_ENDPOINT = "https://formsubmit.co/lednevkiryusha@yandex.ru";
   var FORM_EMAIL = "lednevkiryusha@yandex.ru";
-  var formBusy = false;
-
-  function statusFor(form, ok, message) {
-    var box = form.querySelector(".form-status");
-    if (!box) return;
-    box.textContent = message;
-    box.classList.toggle("ok", ok);
-    box.classList.toggle("err", !ok);
-    box.classList.add("is-visible");
-  }
-
-  function ensureHiddenIframe() {
-    var iframe = document.getElementById("ltk-submit-frame");
-    if (iframe) return iframe;
-    iframe = document.createElement("iframe");
-    iframe.id = "ltk-submit-frame";
-    iframe.name = "ltk-submit-frame";
-    iframe.style.cssText = "position:absolute;width:1px;height:1px;left:-9999px;top:-9999px;border:none;visibility:hidden;";
-    document.body.appendChild(iframe);
-    return iframe;
-  }
-
-  function sendForm(form) {
-    if (formBusy) return;
-    formBusy = true;
-
-    var btn = form.querySelector("button[type='submit']");
-    var origBtn = btn ? btn.innerHTML : "";
-    if (btn) { btn.disabled = true; btn.innerHTML = "Отправляем…"; }
-
-    // Классический FormSubmit: POST на сервер, ответ открывается в скрытом iframe —
-    // работает без CORS на любом статическом хостинге.
-    var iframe = ensureHiddenIframe();
-    form.setAttribute("action", FORM_ENDPOINT);
-    form.setAttribute("method", "POST");
-    form.setAttribute("target", "ltk-submit-frame");
-    form.setAttribute("enctype", "multipart/form-data");
-
-    var done = function (ok, msg) {
-      formBusy = false;
-      if (btn) { btn.disabled = false; btn.innerHTML = origBtn; }
-      if (ok) {
-        statusFor(form, true, "Заявка отправлена!");
-        if (btn) { btn.innerHTML = '<span class="btn-check">✓</span> Заявка отправлена'; }
-        setTimeout(function () { if (btn) btn.innerHTML = origBtn; }, 6000);
-        form.reset();
-      } else {
-        statusFor(form, false, msg);
-      }
-    };
-
-    var timer = setTimeout(function () {
-      if (formBusy) {
-        // iframe не ответил за 8 секунд — показываем ошибку с прямой почтой
-        done(false, "Не удалось отправить автоматически. Пожалуйста, напишите на " + FORM_EMAIL + " — я отвечу лично.");
-      }
-    }, 8000);
-
-    iframe.onload = function () {
-      clearTimeout(timer);
-      if (formBusy) done(true, "Заявка отправлена!");
-    };
-
-    try {
-      form.submit();
-    } catch (e) {
-      clearTimeout(timer);
-      done(false, "Ошибка отправки. Напишите на " + FORM_EMAIL);
-    }
-  }
 
   function bindForms() {
     document.querySelectorAll("form[data-request]").forEach(function (form) {
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-        sendForm(form);
-      });
+      // Настраиваем форму один раз: FormSubmit отправляет письмо на почту
+      // и редиректит посетителя на страницу благодарности.
+      form.setAttribute("action", FORM_ENDPOINT);
+      form.setAttribute("method", "POST");
+      form.setAttribute("enctype", "multipart/form-data");
 
       var needField = form.querySelector("[name='need']");
       var dirSel = form.querySelector("select[name='direction']");
