@@ -126,18 +126,94 @@
     });
   }
 
-  /* ---------- Отправка форм (FormSubmit, обычный POST + редирект) ---------- */
+  /* ---------- Отправка форм (EmailJS — работает из РФ без VPN) ---------- */
 
-  var FORM_ENDPOINT = "https://formsubmit.co/lednevkiryusha@yandex.ru";
+  // ─── Настройки EmailJS (заполните своими ключами) ───
+  var EMAILJS_SERVICE_ID = "service_qds2nsn"; // Service ID
+  var EMAILJS_TEMPLATE_ID = "template_arjnixp"; // Template ID
+  var EMAILJS_PUBLIC_KEY = "s3VBTFe7dOg6MsaLc"; // Public Key
   var FORM_EMAIL = "lednevkiryusha@yandex.ru";
+  var formBusy = false;
+
+  function statusFor(form, ok, message) {
+    var box = form.querySelector(".form-status");
+    if (!box) return;
+    box.textContent = message;
+    box.classList.toggle("ok", ok);
+    box.classList.toggle("err", !ok);
+    box.classList.add("is-visible");
+  }
+
+  function collectFields(form) {
+    var data = {};
+    Array.prototype.forEach.call(form.querySelectorAll("[name]"), function (el) {
+      var name = el.getAttribute("name");
+      if (!name || name.charAt(0) === "_") return;
+      data[name] = el.value || "";
+    });
+    var dir = data.direction;
+    if (dir) {
+      var labels = { spk: "СПК", glass: "Стекло", mash: "Машиностроение", print3d: "3D-печать" };
+      data.direction = labels[dir] || dir;
+    }
+    var files = form.querySelector("input[type='file']");
+    if (files && files.files && files.files.length) {
+      var names = Array.prototype.map.call(files.files, function (f) { return f.name; });
+      data.files = names.join(", ");
+    } else {
+      data.files = "нет";
+    }
+    return data;
+  }
+
+  function sendForm(form) {
+    if (formBusy) return;
+    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
+      statusFor(form, false, "Форма готовится к запуску. Пока напишите на " + FORM_EMAIL + " — я отвечу лично.");
+      return;
+    }
+    if (!window.emailjs) {
+      statusFor(form, false, "Не удалось загрузить модуль отправки. Напишите на " + FORM_EMAIL);
+      return;
+    }
+    formBusy = true;
+
+    var btn = form.querySelector("button[type='submit']");
+    var origBtn = btn ? btn.innerHTML : "";
+    if (btn) { btn.disabled = true; btn.innerHTML = "Отправляем…"; }
+
+    var payload = collectFields(form);
+    payload.to_email = FORM_EMAIL;
+    payload.message = "Заявка с сайта ЛТК";
+
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, payload)
+      .then(function () {
+        formBusy = false;
+        if (btn) { btn.disabled = false; btn.innerHTML = origBtn; }
+        statusFor(form, true, "Заявка отправлена!");
+        if (btn) { btn.innerHTML = '<span class="btn-check">✓</span> Заявка отправлена'; }
+        setTimeout(function () { if (btn) btn.innerHTML = origBtn; }, 6000);
+        form.reset();
+      })
+      .catch(function (err) {
+        formBusy = false;
+        if (btn) { btn.disabled = false; btn.innerHTML = origBtn; }
+        var msg = (err && err.text) ? err.text : "";
+        statusFor(form, false, "Не удалось отправить. " + msg + " Напишите на " + FORM_EMAIL + " — я отвечу лично.");
+      });
+  }
 
   function bindForms() {
     document.querySelectorAll("form[data-request]").forEach(function (form) {
-      // Настраиваем форму один раз: FormSubmit отправляет письмо на почту
-      // и редиректит посетителя на страницу благодарности.
-      form.setAttribute("action", FORM_ENDPOINT);
-      form.setAttribute("method", "POST");
-      form.setAttribute("enctype", "multipart/form-data");
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+        sendForm(form);
+      });
 
       var needField = form.querySelector("[name='need']");
       var dirSel = form.querySelector("select[name='direction']");
