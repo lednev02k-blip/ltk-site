@@ -126,9 +126,11 @@
     });
   }
 
-  /* ---------- Отправка форм (Forminit — работает из РФ, файлы вложением) ---------- */
+  /* ---------- Отправка форм (EmailJS — письма приходят на почту) ---------- */
 
-  var FORM_INIT_ID = "dufxzxnvbik"; // ID формы в Forminit
+  var EMAILJS_SERVICE_ID = "service_qds2nsn"; // Service ID
+  var EMAILJS_TEMPLATE_ID = "template_arjnixp"; // Template ID
+  var EMAILJS_PUBLIC_KEY = "s3VBTFe7dOg6MsaLc"; // Public Key
   var FORM_EMAIL = "lednevkiryusha@yandex.ru";
   var formBusy = false;
 
@@ -141,52 +143,29 @@
     box.classList.add("is-visible");
   }
 
-  // Собирает поля формы в FormData с удобными для Forminit именами
-  function buildFormData(form) {
-    var fd = new FormData();
-    var dirLabels = { spk: "СПК", glass: "Стекло", mash: "Машиностроение", print3d: "3D-печать" };
-
-    function val(name) {
-      var el = form.querySelector("[name='" + name + "']");
-      return el ? (el.value || "").trim() : "";
+  function collectFields(form) {
+    var data = {};
+    Array.prototype.forEach.call(form.querySelectorAll("[name]"), function (el) {
+      var name = el.getAttribute("name");
+      if (!name || name.charAt(0) === "_") return;
+      data[name] = el.value || "";
+    });
+    var dir = data.direction;
+    if (dir) {
+      var labels = { spk: "СПК", glass: "Стекло", mash: "Машиностроение", print3d: "3D-печать" };
+      data.direction = labels[dir] || dir;
     }
-
-    var dir = val("direction");
-    // Текстовые поля (fi-text-*) принимают любые символы, включая кириллицу
-    fd.append("fi-text-napravlenie", dirLabels[dir] || dir || "—");
-    fd.append("fi-text-kto", val("who") || "—");
-    fd.append("fi-sender-city", val("city") || "—");
-    fd.append("fi-text-zadacha", val("need"));
-    fd.append("fi-text-kontakt", val("contact"));
-    fd.append("fi-text-dopolnitelno", val("info"));
-
-    // Forminit требует минимум одно поле sender: email/phone/fullName.
-    // Определяем тип контакта: email → fi-sender-email, иначе → fi-sender-phone (E.164-совм.)
-    var contact = val("contact");
-    var isEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact);
-    if (isEmail) {
-      fd.append("fi-sender-email", contact);
-    } else {
-      var phone = contact.replace(/[^\d+]/g, "");
-      fd.append("fi-sender-phone", phone || "+70000000000");
-    }
-    // Уникальный userId — подстраховка, если контакт пустой
-    fd.append("fi-sender-userId", "ltk_" + Date.now());
-
-    // файлы: передаём как вложения под именами fi-file-attachments[]
-    var fileInput = form.querySelector("input[type='file']");
-    if (fileInput && fileInput.files) {
-      Array.prototype.forEach.call(fileInput.files, function (file) {
-        fd.append("fi-file-attachments[]", file, file.name);
-      });
-    }
-    return fd;
+    return data;
   }
 
   function sendForm(form) {
     if (formBusy) return;
-    if (!window.Forminit) {
-      statusFor(form, false, "Сервис отправки не загрузился. Пока напишите на " + FORM_EMAIL + " — я отвечу лично.");
+    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
+      statusFor(form, false, "Форма готовится к запуску. Пока напишите на " + FORM_EMAIL + " — я отвечу лично.");
+      return;
+    }
+    if (!window.emailjs) {
+      statusFor(form, false, "Не удалось загрузить модуль отправки. Напишите на " + FORM_EMAIL);
       return;
     }
     formBusy = true;
@@ -195,27 +174,24 @@
     var origBtn = btn ? btn.innerHTML : "";
     if (btn) { btn.disabled = true; btn.innerHTML = "Отправляем…"; }
 
-    var forminit = new window.Forminit();
-    var formData = buildFormData(form);
+    var payload = collectFields(form);
+    payload.to_email = FORM_EMAIL;
+    payload.message = "Заявка с сайта ЛТК";
 
-    forminit.submit(FORM_INIT_ID, formData)
-      .then(function (result) {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, payload)
+      .then(function () {
         formBusy = false;
         if (btn) { btn.disabled = false; btn.innerHTML = origBtn; }
-        if (result && !result.error) {
-          statusFor(form, true, "Заявка отправлена!");
-          if (btn) { btn.innerHTML = '<span class="btn-check">✓</span> Заявка отправлена'; }
-          setTimeout(function () { if (btn) btn.innerHTML = origBtn; }, 6000);
-          form.reset();
-        } else {
-          var errMsg = (result && result.error && result.error.message) ? result.error.message : "";
-          statusFor(form, false, "Ошибка отправки. " + errMsg + " Напишите на " + FORM_EMAIL + " — я отвечу лично.");
-        }
+        statusFor(form, true, "Заявка отправлена!");
+        if (btn) { btn.innerHTML = '<span class="btn-check">✓</span> Заявка отправлена'; }
+        setTimeout(function () { if (btn) btn.innerHTML = origBtn; }, 6000);
+        form.reset();
       })
       .catch(function (err) {
         formBusy = false;
         if (btn) { btn.disabled = false; btn.innerHTML = origBtn; }
-        var msg = (err && err.message) ? err.message : "";
+        var msg = (err && err.text) ? err.text : "";
         statusFor(form, false, "Не удалось отправить. " + msg + " Напишите на " + FORM_EMAIL + " — я отвечу лично.");
       });
   }
@@ -249,165 +225,11 @@
     });
   }
 
-  /* ---------- Прикрепление файлов в формах ---------- */
-
-  function bindFileInputs() {
-    document.querySelectorAll(".file-field").forEach(function (field) {
-      var input = field.querySelector("input[type='file']");
-      var drop = field.querySelector(".file-drop");
-      var list = field.querySelector(".file-list");
-      var label = field.querySelector(".file-drop__title");
-      if (!input || !drop) return;
-
-      var MAX_MB = 25;
-      var update = function () {
-        if (!list) return;
-        list.innerHTML = "";
-        var files = Array.prototype.slice.call(input.files || []);
-        files.forEach(function (f) {
-          var chip = document.createElement("span");
-          chip.className = "file-chip";
-          chip.textContent = f.name;
-          var x = document.createElement("b");
-          x.textContent = "×";
-          x.setAttribute("role", "button");
-          x.setAttribute("aria-label", "Удалить файл " + f.name);
-          x.addEventListener("click", function () {
-            var dt = new DataTransfer();
-            Array.prototype.forEach.call(input.files, function (g) {
-              if (g !== f) dt.items.add(g);
-            });
-            input.files = dt.files;
-            update();
-          });
-          chip.appendChild(x);
-          list.appendChild(chip);
-        });
-        if (label) {
-          label.textContent = files.length
-            ? "Прикреплено файлов: " + files.length
-            : "Нажмите или перетащите файлы сюда";
-        }
-      };
-
-      drop.addEventListener("click", function () { input.click(); });
-
-      drop.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); }
-      });
-      drop.setAttribute("tabindex", "0");
-      drop.setAttribute("role", "button");
-
-      input.addEventListener("change", function () {
-        var total = 0;
-        Array.prototype.forEach.call(input.files || [], function (f) { total += f.size; });
-        if (total > MAX_MB * 1024 * 1024) {
-          input.value = "";
-          if (list) list.innerHTML = "";
-          if (label) label.textContent = "Суммарный размер превышает " + MAX_MB + " МБ";
-          return;
-        }
-        update();
-      });
-
-      ["dragover", "dragenter"].forEach(function (ev) {
-        drop.addEventListener(ev, function (e) {
-          e.preventDefault();
-          field.classList.add("is-dragover");
-        });
-      });
-      ["dragleave", "drop"].forEach(function (ev) {
-        drop.addEventListener(ev, function (e) {
-          e.preventDefault();
-          field.classList.remove("is-dragover");
-        });
-      });
-      drop.addEventListener("drop", function (e) {
-        var files = e.dataTransfer && e.dataTransfer.files;
-        if (files && files.length) input.files = files;
-        input.dispatchEvent(new Event("change"));
-      });
-    });
-  }
-
-  /* ---------- Кнопка «Скопировать заявку-пример» ---------- */
-
-  function copyDemo() {
-    var btn = document.getElementById("copy-demo");
-    if (!btn) return;
-    btn.addEventListener("click", function () {
-      var text = [
-        "Заявка ЛТК",
-        "Направление: Светопрозрачные конструкции",
-        "Кто обращается: Частный клиент",
-        "Задача: нужны чертежи и 3D-модель раздвижной системы для остекления террасы.",
-        "Контакт: +7 900 000-00-00",
-        "Дополнительно: рассмотреть варианты профилей."
-      ].join("\n");
-      var done = function () {
-        btn.textContent = "Скопировано ✓";
-        setTimeout(function () { btn.textContent = "Скопировать заявку-пример"; }, 2500);
-      };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done).catch(function () {});
-      }
-    });
-  }
-
-  /* ---------- Фильтр портфолио ---------- */
-
-  function bindPortfolioFilter() {
-    var bar = document.getElementById("portfolio-filter");
-    if (!bar || !window.LEDNEV || !window.LEDNEV.PROJECTS) return;
-
-    var grid = document.getElementById("portfolio-list");
-    var filters = bar.querySelectorAll("[data-filter]");
-    var filtersWrap = bar;
-
-    function render(filter) {
-      if (!grid) return;
-      var items = window.LEDNEV.PROJECTS.filter(function (p) {
-        return filter === "all" || p.dir === filter;
-      });
-      grid.innerHTML = "";
-      items.forEach(function (p, i) {
-        var card = document.createElement("article");
-        card.className = "case-card reveal is-inview";
-        card.innerHTML =
-          '<div class="case-card__media">' +
-            '<img src="' + p.img + '" alt="' + p.title + '" loading="lazy">' +
-            '<span class="tag case-card__tag">' + p.dirName + " · " + p.year + "</span>" +
-          "</div>" +
-          '<div class="case-card__body">' +
-            '<div class="case-card__num">КЕЙС <b>' + String(i + 1).padStart(2, "0") + "</b> // " + p.dirName + "</div>" +
-            "<h3 class=\"case-card__title\">" + p.title + "</h3>" +
-            "<p class=\"case-card__text\">" + p.result + "</p>" +
-            '<div class="case-card__meta">' +
-              p.tools.map(function (t) { return '<span class="tag">' + t + "</span>"; }).join("") +
-            "</div>" +
-            '<a class="case-card__link" href="contacts.html?dir=' + p.dir + '">Обсудить похожий проект <span class="arr">→</span></a>' +
-          "</div>";
-        grid.appendChild(card);
-      });
-    }
-
-    filters.forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        filters.forEach(function (b) { b.classList.remove("is-active"); });
-        btn.classList.add("is-active");
-        render(btn.getAttribute("data-filter"));
-      });
-    });
-
-    render("all");
-  }
-
   /* ---------- Инициализация ---------- */
 
   document.addEventListener("DOMContentLoaded", function () {
     seedForms();
     bindForms();
-    bindFileInputs();
     bindPortfolioFilter();
   });
 })();
